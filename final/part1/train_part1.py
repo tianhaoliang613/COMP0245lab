@@ -210,18 +210,18 @@ print(f"Input dimension: {input_dim}, Output dimension: {output_dim}")
 
 model = MLPNet4(input_size=input_dim, output_size=output_dim).to(device)
 
-print("\n 开始训练模型...")
+print("\nStarting model training...")
 learning_rate = 0.0005 
 num_epochs = 50
 criterion = nn.MSELoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 
-# 记录训练和验证损失
+# Record training and validation losses
 train_losses = []
 val_losses = []
 
 for epoch in range(num_epochs):
-    # 训练阶段
+    # Training phase
     model.train()
     total_train_loss = 0
     for inputs, targets in train_loader:
@@ -235,7 +235,7 @@ for epoch in range(num_epochs):
     avg_train_loss = total_train_loss / len(train_loader)
     train_losses.append(avg_train_loss)
     
-    # 验证阶段
+    # Validation phase
     model.eval()
     total_val_loss = 0
     with torch.no_grad():
@@ -248,7 +248,7 @@ for epoch in range(num_epochs):
     val_losses.append(avg_val_loss)
     
     print(f'Epoch [{epoch+1}/{num_epochs}], Train Loss: {avg_train_loss:.6f}, Val Loss: {avg_val_loss:.6f}')
-print("模型训练完成！")
+print("Model training completed!")
 
 model.eval()
 all_predictions, all_targets = [], []
@@ -264,14 +264,14 @@ y_pred = scaler_y.inverse_transform(y_pred_scaled)
 y_test_real = scaler_y.inverse_transform(y_test_scaled_from_loader)
 mse = mean_squared_error(y_test_real, y_pred)
 r2 = r2_score(y_test_real, y_pred)
-print(f"\n模型在测试集上的最终表现:")
-print(f"  均方误差 (MSE): {mse:.6f}")
-print(f"  决定系数 (R-squared): {r2:.4f}")
+print(f"\nFinal model performance on test set:")
+print(f"  Mean Squared Error (MSE): {mse:.6f}")
+print(f"  R-squared: {r2:.4f}")
 
-# 绘制训练和验证损失曲线
+# Plot training and validation loss curves
 plt.figure(figsize=(15, 5))
 
-# 子图1：训练和验证损失曲线
+# Subplot 1: Training and validation loss curves
 plt.subplot(1, 2, 1)
 epochs_range = range(1, num_epochs + 1)
 plt.plot(epochs_range, train_losses, 'b-', linewidth=2, marker='o', markersize=4, label='Training Loss')
@@ -282,7 +282,7 @@ plt.ylabel('MSE Loss')
 plt.legend()
 plt.grid(True, alpha=0.3)
 
-# 子图2：关节力矩预测对比
+# Subplot 2: Joint torque prediction comparison
 joint_index = 2
 num_points_to_plot = 300
 plt.subplot(1, 2, 2)
@@ -294,7 +294,7 @@ plt.ylabel('Torque')
 plt.legend()
 plt.grid(True)
 
-# 在图上添加MSE和R²数值
+# Add MSE and R² values to plot
 textstr = f'MSE: {mse:.6f}\nR²: {r2:.4f}'
 props = dict(boxstyle='round', facecolor='wheat', alpha=0.8)
 plt.text(0.02, 0.98, textstr, transform=plt.gca().transAxes, fontsize=10,

@@ -178,8 +178,8 @@ class MLPNet6(nn.Module):
 def run_experiment(experiment_name, model_class, learning_rate, use_standardization, batch_size,
                    X_train, y_train, X_val, y_val, X_test, y_test):
     
-    print(f"\n运行实验: {experiment_name}")
-    print(f"模型: {model_class.__name__}, 学习率: {learning_rate}, 标准化: {use_standardization}, 批大小: {batch_size}")
+    print(f"\nRunning experiment: {experiment_name}")
+    print(f"Model: {model_class.__name__}, LR: {learning_rate}, Standardization: {use_standardization}, Batch size: {batch_size}")
 
     if use_standardization:
         scaler_X = StandardScaler()
@@ -234,7 +234,7 @@ def run_experiment(experiment_name, model_class, learning_rate, use_standardizat
         val_losses.append(avg_val_loss)
 
         if (epoch + 1) % 10 == 0:
-            print(f'  Epoch [{epoch+1}/{num_epochs}], 训练损失: {avg_train_loss:.6f}, 验证损失: {avg_val_loss:.6f}')
+            print(f'  Epoch [{epoch+1}/{num_epochs}], Train Loss: {avg_train_loss:.6f}, Val Loss: {avg_val_loss:.6f}')
     
     # --- Evaluation ---
     model.eval()
@@ -269,27 +269,27 @@ def run_experiment(experiment_name, model_class, learning_rate, use_standardizat
     }
 
 def plot_experiment_group(group_name, results_list):
-    """为一组实验绘制综合图片"""
-    print(f"\n生成实验组图片: {group_name}")
+    """Plot comprehensive results for an experiment group"""
+    print(f"\nGenerating experiment group plot: {group_name}")
     
     plt.figure(figsize=(14, 8))
     
-    # 设置颜色和线型
+    # Set colors and line styles
     colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b']
     line_styles = ['-', '--', '-.', ':', '-', '--']
     
-    # 在同一个图上绘制训练和验证损失曲线
+    # Plot training and validation loss curves
     for i, result in enumerate(results_list):
         color = colors[i % len(colors)]
         style = line_styles[i % len(line_styles)]
         epochs = range(1, len(result['train_losses']) + 1)
         
-        # 绘制训练损失（实线）
+        # Plot training loss (solid line)
         plt.plot(epochs, result['train_losses'], 
                 color=color, linestyle=style, linewidth=2, alpha=0.8,
                 label=f"{result['name']} - Training (MSE: {result['mse']:.4f})")
         
-        # 绘制验证损失（虚线）
+        # Plot validation loss (dashed line)
         plt.plot(epochs, result['val_losses'], 
                 color=color, linestyle=':', linewidth=2, alpha=0.6,
                 label=f"{result['name']} - Validation (R²: {result['r2']:.4f})")
@@ -303,16 +303,16 @@ def plot_experiment_group(group_name, results_list):
     
     plt.tight_layout()
     
-    # 保存图像
+    # Save figure
     results_dir = Path(__file__).resolve().parent / "experiment_results"
     results_dir.mkdir(exist_ok=True)
     plt.savefig(results_dir / f"{group_name}.png", bbox_inches='tight', dpi=300)
     plt.close()
     
-    print(f"  图片已保存: {results_dir / f'{group_name}.png'}")
+    print(f"  Plot saved: {results_dir / f'{group_name}.png'}")
     
-    # 打印汇总结果
-    print(f"\n{group_name} 实验结果汇总:")
+    # Print summary results
+    print(f"\n{group_name} Results Summary:")
     print("-" * 60)
     for result in results_list: 
         print(f"  {result['name']:30} MSE: {result['mse']:8.4f}  R²: {result['r2']:7.4f}")

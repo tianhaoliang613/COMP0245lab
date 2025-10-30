@@ -54,7 +54,7 @@ def main():
     with open("scalers.pkl", "rb") as f:
         scaler_X, scaler_Y = pickle.load(f)
 
-    print("✅ Loaded model & scalers for Part3 control")
+    print("Loaded model & scalers for Part3 control")
 
     conf_file_name = "pandaconfig.json"
     root_dir = os.path.dirname(os.path.abspath(__file__))
@@ -99,7 +99,7 @@ def main():
 
     q_mes_all, qd_mes_all, qdd_est_all, q_d_all, qd_d_all, qdd_d_all, tau_mes_all, cart_pos_all, cart_ori_all = [], [], [], [], [], [], [], [], []
     all_trajectory_points = []
-    position_errors = []  # ✅ 存储每个目标点的误差
+    position_errors = []  # Store error for each target point
     current_time = 0
     time_step = sim.GetTimeStep()
 
@@ -145,27 +145,27 @@ def main():
             time.sleep(time_step)
             current_time += time_step
 
-        print(f"✅ Finished segment {i+1}/{len(list_of_desired_cartesian_positions)}")
+        print(f"Finished segment {i+1}/{len(list_of_desired_cartesian_positions)}")
 
-        # ✅ 计算误差
+        # Calculate error
         final_cart_pos = np.array(trajectory_points[-1])
         error = np.linalg.norm(final_cart_pos - desired_cartesian_pos)
         position_errors.append(error)
-        print(f"🎯 Target {i+1} goal: {desired_cartesian_pos}, reached: {final_cart_pos}, error: {error:.6f} m")
+        print(f"Target {i+1} goal: {desired_cartesian_pos}, reached: {final_cart_pos}, error: {error:.6f} m")
 
-        # ✅ 保存每一段轨迹
+        # Save each trajectory segment
         all_trajectory_points.extend(trajectory_points)
         np.save(FINAL_DIR / f"trajectory_points_{i}.npy", np.array(trajectory_points))
 
-    # ✅ 保存误差信息
+    # Save error information
     position_errors = np.array(position_errors)
     np.save(FINAL_DIR / "position_errors.npy", position_errors)
-    print(f"\n💾 Saved position errors to position_errors.npy")
+    print(f"\nSaved position errors to position_errors.npy")
     for i, e in enumerate(position_errors):
         print(f"Segment {i+1}: position error = {e:.6f} m")
-    print(f"📊 Mean position error: {np.mean(position_errors):.6f} m")
+    print(f"Mean position error: {np.mean(position_errors):.6f} m")
 
-    # ✅ 绘制轨迹
+    # Plot trajectory
     all_traj = np.array(all_trajectory_points)
     np.save(FINAL_DIR / "final_trajectory.npy", all_traj)
 
@@ -173,11 +173,11 @@ def main():
     ax = fig.add_subplot(111, projection='3d')
     ax.plot(all_traj[:, 0], all_traj[:, 1], all_traj[:, 2], 'r-', linewidth=2, label='End-effector path')
 
-    # 绘制目标点
+    # Plot target points
     targets = np.array(list_of_desired_cartesian_positions)
     ax.scatter(targets[:, 0], targets[:, 1], targets[:, 2], c='b', s=80, marker='o', label='Target Points')
 
-    # 标注误差
+    # Label errors
     for i, (target, err) in enumerate(zip(targets, position_errors)):
         ax.text(target[0], target[1], target[2] + 0.02, f"E{i+1}={err:.3f}m", color='blue')
 
@@ -191,31 +191,31 @@ def main():
     plt.savefig(FINAL_DIR / "final_trajectory_with_errors.png", dpi=300)
     plt.close(fig)
 
-    print("📈 Saved trajectory plot with target points and error labels.")
+    print("Saved trajectory plot with target points and error labels.")
         # ============================================================
-    # ✅ visualize each trajectory segment separately
+    # Visualize each trajectory segment separately
     # ============================================================
     
 
-    print("\n📊 visualizing trajectories...")
+    print("\nVisualizing trajectories...")
 
     for i in range(len(list_of_desired_cartesian_positions)):
         traj_path = FINAL_DIR / f"trajectory_points_{i}.npy"
         if not traj_path.exists():
-            print(f"⚠️ 未找到 {traj_path.name}，跳过该段。")
+            print(f"Warning: {traj_path.name} not found, skipping segment.")
             continue
 
         traj = np.load(traj_path)
         print(f"Loaded {traj_path.name}, shape = {traj.shape}")  # debug
 
-        # sanity reshape/validate
+        # Sanity reshape/validate
         if traj.ndim == 1:
             traj = traj.reshape(-1, 3)
         if traj.ndim != 2 or traj.shape[1] != 3:
-            print(f"⚠️ 文件 {traj_path.name} 形状异常: {traj.shape}, 跳过")
+            print(f"Warning: File {traj_path.name} has abnormal shape: {traj.shape}, skipping")
             continue
 
-        # debug: value ranges and number of unique points (rounded to 6 decimals)
+        # Debug: value ranges and number of unique points (rounded to 6 decimals)
         x_min, x_max = traj[:, 0].min(), traj[:, 0].max()
         y_min, y_max = traj[:, 1].min(), traj[:, 1].max()
         z_min, z_max = traj[:, 2].min(), traj[:, 2].max()
@@ -228,7 +228,7 @@ def main():
         target = np.array(list_of_desired_cartesian_positions[i])
         error_val = position_errors[i] if i < len(position_errors) else None
 
-        # ---- 3D traj with improved visibility ----
+        # 3D trajectory with improved visibility
         fig = plt.figure(figsize=(8, 6))
         ax = fig.add_subplot(111, projection='3d')
 
@@ -236,7 +236,7 @@ def main():
         ax.plot(traj[:, 0], traj[:, 1], traj[:, 2], color='red', linewidth=2.5, alpha=0.9, label='End-effector path')
         ax.scatter(traj[:, 0], traj[:, 1], traj[:, 2], color='red', s=2, alpha=0.6)
 
-        # start/end/target markers
+        # Start/end/target markers
         ax.scatter(traj[0, 0], traj[0, 1], traj[0, 2], c='green', s=50, marker='^', label='Start')
         ax.scatter(traj[-1, 0], traj[-1, 1], traj[-1, 2], c='orange', s=60, marker='x', label='End')
         ax.scatter(target[0], target[1], target[2], c='blue', s=80, marker='o', label='Target')
@@ -244,13 +244,13 @@ def main():
         if error_val is not None:
             ax.text(target[0], target[1], target[2] + 0.02, f"Err={error_val:.3f} m", color='black', fontsize=10)
 
-        # expand axes by a small margin to avoid clipping / compression
+        # Expand axes by a small margin to avoid clipping/compression
         margin = 0.02  # 2 cm margin
         xa = (x_min - margin, x_max + margin)
         ya = (y_min - margin, y_max + margin)
         za = (z_min - margin, z_max + margin)
 
-        # ensure non-zero range (if min==max, expand)
+        # Ensure non-zero range (if min==max, expand)
         def ensure_range(a):
             if abs(a[1] - a[0]) < 1e-6:
                 return (a[0] - 0.01, a[1] + 0.01)
@@ -264,8 +264,8 @@ def main():
         ax.set_ylim(ya)
         ax.set_zlim(za)
 
-        # optional: make 3D axes equal scale (approx)
-        # compute center and max span
+        # Optional: make 3D axes equal scale (approx)
+        # Compute center and max span
         cx = 0.5 * (xa[0] + xa[1])
         cy = 0.5 * (ya[0] + ya[1])
         cz = 0.5 * (za[0] + za[1])
@@ -284,10 +284,10 @@ def main():
         plt.tight_layout()
         save_3d = FINAL_DIR / f"trajectory_segment_{i}_3d.png"
         plt.savefig(save_3d, dpi=300)
-        print(f"💾 saved: {save_3d} (3D)")
+        print(f"Saved: {save_3d} (3D)")
         plt.close(fig)
 
-        # ---- Top-down XY view ----
+        # Top-down XY view
         fig2, ax2 = plt.subplots(figsize=(7, 6))
         ax2.plot(traj[:, 0], traj[:, 1], 'r-', linewidth=2.5, alpha=0.9, label='End-effector path')
         ax2.scatter(traj[:, 0], traj[:, 1], c='r', s=3, alpha=0.6)
@@ -295,7 +295,7 @@ def main():
         ax2.scatter(traj[-1, 0], traj[-1, 1], c='g', s=60, marker='x', label='End')
         if error_val is not None:
             ax2.text(target[0], target[1] + 0.01, f"Err={error_val:.3f} m", ha='center', fontsize=9)
-        # set limits and equal aspect
+        # Set limits and equal aspect
         ax2.set_xlim(xa[0], xa[1])
         ax2.set_ylim(ya[0], ya[1])
         ax2.set_aspect('equal', 'box')
@@ -307,13 +307,13 @@ def main():
         plt.tight_layout()
         save_2d = FINAL_DIR / f"trajectory_segment_{i}_xy.png"
         plt.savefig(save_2d, dpi=300)
-        print(f"💾 saved: {save_2d} (XY)")
+        print(f"Saved: {save_2d} (XY)")
         plt.close(fig2)
 
-    print("✅ All trajectory plots saved.")
+    print("All trajectory plots saved.")
 
 
-    print("✅ Simulation and analysis complete.")
+    print("Simulation and analysis complete.")
 
 
     
