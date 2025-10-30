@@ -1,0 +1,4 @@
+data_generator.py用于生成final lab part1的数据
+rollout_loader.py用于加载final lab part1的数据
+train_part1.py单次训练，绘制一个模型的训练收敛图
+hyperparameter_exp.py重构代码，一次训练多组参数的模型，并绘制对比图
