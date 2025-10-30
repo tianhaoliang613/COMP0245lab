@@ -1,4 +1,3 @@
-# final/rollout_loader.py
 from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
@@ -6,71 +5,50 @@ from typing import List, Dict, Any, Iterable, Optional
 import pickle
 import re
 
-
 @dataclass
 class Rollout:
     idx: int
     path: str
     time: List[float]
-    cart_pos_final: List[float]
-    cart_ori_final: List[float]
     q_mes_all: List[List[float]]
-    qd_mes_all: List[List[float]]
-    qdd_est_all: List[List[float]]
-    q_des_all: List[List[float]]
-    qd_des_all: List[List[float]]
-    # qdd_des_all: List[List[float]]
-    qd_mes_all: List[List[float]]
+    q_d_all: List[List[float]]
     tau_mes_all: List[List[float]]
-    cart_pos_all: List[List[float]]
-    cart_ori_all: List[List[float]]
-    
+    tau_cmd_all: List[List[float]] 
+
     @classmethod
     def from_dict(cls, idx: int, path: Path, d: Dict[str, Any]) -> "Rollout":
-        required = ["time", "q_mes_all", "qd_mes_all",
-                    "tau_mes_all", "cart_pos_all", "cart_ori_all",
-                     'q_des_all', 'qd_des_all',
-                    'cart_pos_final', 'cart_ori_final']
+        required = ["time", "q_mes_all", "q_d_all", "tau_mes_all", "tau_cmd_all"]
+        
         missing = [k for k in required if k not in d]
         if missing:
-            raise ValueError(f"{path} is missing keys: {missing}")
+            if 'tau_cmd_all' in missing and len(missing) == 1:
+                print(f"Warning: '{path}' is missing 'tau_cmd_all'. Using 'tau_mes_all' as a fallback.")
+                d['tau_cmd_all'] = d['tau_mes_all']
+            else:
+                raise ValueError(f"{path} is missing keys: {missing}")
+        
         return cls(
             idx=idx,
             path=str(path),
             time=d["time"],
             q_mes_all=d["q_mes_all"],
-            qd_mes_all=d["qd_mes_all"],
-            qdd_est_all=d["qdd_est_all"],
-            q_des_all=d["q_des_all"],
-            qd_des_all=d["qd_des_all"],            
-            # qdd_des_all=d["qdd_des_all"],
+            q_d_all=d["q_d_all"],
             tau_mes_all=d["tau_mes_all"],
-            cart_pos_all=d["cart_pos_all"],
-            cart_ori_all=d["cart_ori_all"],
-            cart_pos_final=d["cart_pos_final"],
-            cart_ori_final=d["cart_ori_final"],
+            tau_cmd_all=d["tau_cmd_all"],
         )
 
-
-# --------- helper(s) ----------
 def _default_final_dir() -> Path:
-    # Resolve to the absolute path of the 'final' package containing this file
     return Path(__file__).resolve().parent
 
-
 def _find_by_index(directory: Path, i: int) -> Optional[Path]:
-    # Accept both "data_{i}.pkl" and "{i}.pkl"
     for name in (f"data_{i}.pkl", f"{i}.pkl"):
         p = directory / name
         if p.is_file():
             return p
     return None
 
-
 def _discover_all(directory: Path) -> List[tuple[int, Path]]:
-    """Return all (index, path) pairs discovered in directory."""
     items: List[tuple[int, Path]] = []
-    # Match data_123.pkl or 123.pkl
     pat = re.compile(r"^(?:data_)?(\d+)\.pkl$")
     for p in directory.iterdir():
         if p.suffix == ".pkl":
@@ -80,34 +58,13 @@ def _discover_all(directory: Path) -> List[tuple[int, Path]]:
     items.sort(key=lambda t: t[0])
     return items
 
-
-# --------- public API ----------
 def load_rollouts(
     count: Optional[int] = None,
     indices: Optional[Iterable[int]] = None,
     directory: Optional[str | Path] = None,
     strict_missing: bool = False,
 ) -> List[Rollout]:
-    """
-    Load multiple rollout .pkl files.
-
-    Parameters
-    ----------
-    count : int, optional
-        Load indices 1..count (useful for 'first N').
-    indices : iterable of int, optional
-        Load these specific indices (e.g., [1, 3, 7]).
-    directory : str | Path, optional
-        Folder containing the .pkl files. Defaults to the 'final' package dir.
-    strict_missing : bool
-        If True, raise if any requested index is not found. If False, skip silently.
-
-    Returns
-    -------
-    List[Rollout]
-    """
     dir_path = Path(directory) if directory is not None else _default_final_dir()
-
     targets: List[tuple[int, Path]] = []
     if indices is not None:
         for i in sorted(set(indices)):
@@ -126,17 +83,13 @@ def load_rollouts(
             else:
                 targets.append((i, p))
     else:
-        # Load everything we can find
         targets = _discover_all(dir_path)
         if not targets:
             raise FileNotFoundError(f"No rollout .pkl files found in {dir_path}")
-
     rollouts: List[Rollout] = []
     for i, p in targets:
         with p.open("rb") as f:
             data = pickle.load(f)
         rollouts.append(Rollout.from_dict(i, p, data))
-
-    # Always return in ascending index order
     rollouts.sort(key=lambda r: r.idx)
     return rollouts
