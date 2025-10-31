@@ -3,13 +3,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 from pathlib import Path
 
-# Configuration
-DATA_DIR = Path(__file__).resolve().parent  # CSV file directory
+# ----------------- 配置 -----------------
+DATA_DIR = Path(__file__).resolve().parent  # CSV 文件所在目录
 OUTPUT_DIR = DATA_DIR / "trajectory_plots"
 OUTPUT_DIR.mkdir(exist_ok=True)
 
-# Trajectory files and corresponding target points
-# Assumes CSV files are named trajectory_segment_0.csv ... trajectory_segment_3.csv
+# 轨迹文件和对应的目标点
+# 假设 CSV 文件命名为 trajectory_segment_0.csv ... trajectory_segment_3.csv
 trajectory_files = [
     "trajectory_segment_0.csv",
     "trajectory_segment_1.csv",
@@ -17,7 +17,7 @@ trajectory_files = [
     "trajectory_segment_3.csv"
 ]
 
-# Corresponding target points (must match simulation)
+# 对应目标点 (必须和模拟里一致)
 target_points = [
     [0.5, 0.0, 0.1],
     [0.4, 0.2, 0.1],
@@ -25,25 +25,25 @@ target_points = [
     [0.4, 0.1, 0.1]
 ]
 
-# Visualization
+# ----------------- 可视化 -----------------
 for i, file_name in enumerate(trajectory_files):
     csv_path = DATA_DIR / file_name
     if not csv_path.exists():
-        print(f"Warning: File {file_name} not found, skipping.")
+        print(f"⚠️ File {file_name} not found, skipping.")
         continue
 
-    # Read CSV
+    # 读取 CSV
     traj_df = pd.read_csv(csv_path)
     traj = traj_df[["X","Y","Z"]].to_numpy()
 
     if traj.shape[0] < 2:
-        print(f"Warning: File {file_name} has too few points, skipping.")
+        print(f"⚠️ File {file_name} has too few points, skipping.")
         continue
 
     target = np.array(target_points[i])
     actual_final = traj[-1]
 
-    # 3D visualization
+    # 3D 可视化
     fig = plt.figure(figsize=(8,6))
     ax = fig.add_subplot(111, projection='3d')
     ax.plot(traj[:,0], traj[:,1], traj[:,2], color='red', linewidth=2, label='EE Path')
@@ -60,10 +60,10 @@ for i, file_name in enumerate(trajectory_files):
     ax.view_init(elev=30, azim=45)
     plt.tight_layout()
 
-    # Save figure
+    # 保存图片
     save_path = OUTPUT_DIR / f"trajectory_segment_{i}_3d.png"
     plt.savefig(save_path, dpi=300)
     plt.close(fig)
-    print(f"Saved 3D trajectory plot: {save_path}")
+    print(f"💾 Saved 3D trajectory plot: {save_path}")
 
-print("All trajectory plots saved.")
+print("✅ All trajectory plots saved.")
